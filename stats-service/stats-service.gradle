@@ -1,0 +1,33 @@
+apply plugin: 'application'
+apply plugin: 'distribution'
+
+group = 'core'
+description = 'Dishant Smarthome Statistics Service'
+mainClassName = 'com.dishant.iot.smarthome.stats.Application'
+applicationName = 'smarthome-stats'
+
+jar {
+    baseName = 'smarthome-stats'
+    version =  version
+    manifest {
+        attributes 'Created-By': version+' (Dishant Langayan)',
+                   'Implementation-Title': description,
+                   'Implementation-Version': version
+    }
+}
+
+def distributionsCopySpec = copySpec {
+    into("$applicationName-$version") {
+        from(libsDir) {
+            include '*.jar' //copy the fat jar created by bootRepackage
+        }
+        from("${rootDir}") {
+        	include "LICENSE"
+            include "README.md"
+            include versionFile.name
+        }
+    }
+}
+
+task fatJarZip(type: Zip, dependsOn: 'bootRepackage') { with distributionsCopySpec }
+task fatJarTar(type: Tar, dependsOn: 'bootRepackage') { with distributionsCopySpec }

@@ -1,0 +1,119 @@
+buildscript {
+    ext { springBootVersion = '1.5.2.RELEASE' }
+    repositories { mavenCentral() }
+    dependencies { classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}") }
+}
+
+// The file containing the version num
+ext.versionFile = file('version.properties')
+
+def projectVersion = readVersion()
+
+subprojects {
+    // Version no to apply to all projects
+    version = projectVersion
+
+    // Common plugin to apply to all projects.
+    apply plugin: 'java'
+    apply plugin: 'eclipse'
+    apply plugin: 'org.springframework.boot'
+
+    // Java JDK minimum source compatibility
+    sourceCompatibility = '1.8'
+
+    // In this section you declare where to find the dependencies of your project
+    repositories {
+        mavenCentral()
+    }
+
+    // In this section you declare the dependencies for your production and test code
+    dependencies {
+        // Spring Boot framework
+        compile("org.springframework.boot:spring-boot-starter-actuator:${springBootVersion}")
+        // JSON
+        compile 'com.google.code.gson:gson:2.8.0'
+
+        // The production code uses the SLF4J logging API at compile time
+        compile 'org.slf4j:slf4j-api:1.7.21'
+
+        // Declare the dependency for your favourite test framework you want to use in your tests.
+        // TestNG is also supported by the Gradle Test task. Just change the
+        // testCompile dependency to testCompile 'org.testng:testng:6.8.1' and add
+        // 'test.useTestNG()' to your build script.
+        testCompile 'junit:junit:4.12'
+    }
+}
+
+project(':raspi-service') {
+    dependencies {
+        compile project(':api')
+    }
+}
+
+project(':stats-service') {
+    dependencies {
+        compile project(':api')
+    }
+}
+
+// Prints versions
+task printVersion(group: 'versioning', description: 'Displays the project version') << {
+    logger.quiet "Dishant's Smarthome Project Version: $version"
+}
+
+// Task to increment version no
+tasks.addRule("Pattern: increment<Classifier>Version – Increments the project version classifier.") { String taskName ->
+    if(taskName.startsWith('increment') && taskName.endsWith('Version')) {
+        task(taskName) << {
+            String classifier = (taskName - 'increment' - 'Version').toLowerCase()
+            String currentVersion = version.toString()
+            switch(classifier) {
+                case 'major': ++version.major
+                    break
+                case 'minor': ++version.minor
+                    break
+                case 'patch': ++version.patch
+                    break
+                default: throw new GradleException("Invalid version type '$classifier. Allowed types: ['Major', 'Minor', 'Patch']")
+            }
+            String newVersion = version.toString()
+            logger.info "Incrementing $classifier project version: $currentVersion -> $newVersion"
+            
+            ant.propertyfile(file: versionFile) {
+                entry(key: classifier, type: 'int', operation: '+', value: 1)
+            }
+
+            logger.quiet "New Version: $version"
+        }
+    }
+}
+
+// Some convenient Groovy method and class to load version num
+ProjectVersion readVersion() {
+    logger.info 'Reading the version file.'
+    if(!versionFile.exists()) {
+        throw new GradleException("Required version file does not exist: $versionFile.canonicalPath")
+    }
+    Properties versionProps = new Properties()
+    versionFile.withInputStream { stream ->
+        versionProps.load(stream)
+    }
+    new ProjectVersion(versionProps.major.toInteger(), versionProps.minor.toInteger(), versionProps.patch.toInteger())
+}
+
+class ProjectVersion {
+    Integer major
+    Integer minor
+    Integer patch
+
+    ProjectVersion(Integer major, Integer minor, Integer patch) {
+        this.major = major
+        this.minor = minor
+        this.patch = patch
+    }
+
+    @Override
+    String toString() {
+        "$major.$minor.$patch"
+    }
+}

@@ -1,0 +1,14 @@
+group = 'core'
+description = 'Dishant Smarthome API'
+
+bootRepackage.enabled = false
+
+jar {
+    baseName = 'smarthome-api'
+    version =  version
+    manifest {
+        attributes 'Created-By': version+' (Dishant Langayan)',
+                   'Implementation-Title': description,
+                   'Implementation-Version': version
+    }
+}
