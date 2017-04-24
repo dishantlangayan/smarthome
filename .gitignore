@@ -16,8 +16,8 @@ hs_err_pid*
 .gradle/
 .project
 .settings/
-/build/
-/bin/
+build/
+bin/
 
 # VS Code
 .vscode/
