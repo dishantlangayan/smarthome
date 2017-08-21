@@ -13,12 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.dishant.iot.smarthome.api;
+package com.dishant.iot.smarthome;
 
 /**
- * @author dlangayan
- *
+ * The exception is raised during connect failures.
  */
-public class SmarthomeException {
+public class SmarthomeConnectException extends SmarthomeException {
+    private static final long serialVersionUID = 6255452632915942325L;
 
+    public SmarthomeConnectException(String message) {
+        super(message);
+    }
+
+    public SmarthomeConnectException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
